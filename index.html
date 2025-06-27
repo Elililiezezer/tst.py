@@ -1,106 +1,57 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pescando Dados</title>
-  <style>
-    body { font-family: sans-serif; margin: 20px; }
-    .container { max-width: 800px; margin: auto; }
-    input#searchInput {
-      width: 100%;
-      padding: 8px;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #aaa; padding: 6px; text-align: left; }
-    th { background-color: #f0f0f0; }
-    button { padding: 8px 12px; cursor: pointer; }
-    .hidden { display: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Tem interesse em alevinos?</h1>
-    <p>Esta é uma página que lhe ajudará a encontrar informações de maneira fácil e prática...</p>
-    <button onclick="mostrarMensagem()">Clique em mim!</button>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("tabela-container");
+    const input = document.getElementById("searchInput");
 
-    <!-- Barra de pesquisa -->
-    <input type="text" id="searchInput" placeholder="🔍 Pesquise na tabela..." />
+    fetch("tabela-pescados.csv")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((texto) => {
+        const linhas = texto.trim().split("\n");
+        if (linhas.length === 0) {
+          container.textContent = "CSV vazio.";
+          return;
+        }
 
-    <!-- Local para a tabela -->
-    <div id="tabela-container"></div>
-
-    <a href="tabela-pescados.csv" target="_blank" rel="noopener">
-      <button class="botao-simples">Ver CSV</button>
-    </a>
-  </div>
-
-  <script>
-    function mostrarMensagem() {
-      alert('Você é MUITO GAY');
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const container = document.getElementById("tabela-container");
-      const input = document.getElementById("searchInput");
-
-      fetch("tabela-pescados.csv")
-        .then(resp => {
-          if (!resp.ok) throw new Error("Status " + resp.status);
-          return resp.text();
-        })
-        .then(texto => {
-          const linhas = texto.trim().split("\n");
-          if (linhas.length === 0) {
-            container.textContent = "CSV vazio.";
-            return;
-          }
-
-          // Cria tabela e armazena referência ao tbody
-          const table = document.createElement("table");
-          table.id = "myTable";
-          const thead = document.createElement("thead");
-          const headerCells = linhas[0].split(",");
-          const trHead = document.createElement("tr");
-          headerCells.forEach(c => {
-            const th = document.createElement("th");
-            th.textContent = c;
-            trHead.appendChild(th);
-          });
-          thead.appendChild(trHead);
-          table.appendChild(thead);
-
-          const tbody = document.createElement("tbody");
-          linhas.slice(1).forEach(linha => {
-            const tr = document.createElement("tr");
-            linha.split(",").forEach(cel => {
-              const td = document.createElement("td");
-              td.textContent = cel;
-              tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-          });
-          table.appendChild(tbody);
-          container.appendChild(table);
-
-          // Evento que filtra linhas no keyup
-          input.addEventListener("keyup", () => {
-            const filtro = input.value.toLowerCase();
-            Array.from(tbody.rows).forEach(row => {
-              const textoRow = row.textContent.toLowerCase();
-              row.classList.toggle("hidden", !textoRow.includes(filtro));
-            });
-          });
-        })
-        .catch(err => {
-          console.error("Erro ao carregar CSV:", err);
-          container.textContent = "Falha ao carregar a tabela.";
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+        linhas[0].split(",").forEach((col) => {
+          const th = document.createElement("th");
+          th.textContent = col;
+          trHead.appendChild(th);
         });
-    });
-  </script>
-</body>
-</html>
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        linhas.slice(1).forEach((linha) => {
+          const tr = document.createElement("tr");
+          linha.split(",").forEach((cel) => {
+            const td = document.createElement("td");
+            td.textContent = cel;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+
+        input.addEventListener("keyup", () => {
+          const filtro = input.value.toLowerCase();
+          Array.from(tbody.rows).forEach((row) => {
+            const textoRow = row.textContent.toLowerCase();
+            row.classList.toggle("hidden", !textoRow.includes(filtro));
+          });
+        });
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar a tabela:", error);
+        container.textContent = `Erro ao carregar a tabela: ${error.message}`;
+      });
+  });
+</script>
