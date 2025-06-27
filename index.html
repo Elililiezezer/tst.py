@@ -12,13 +12,14 @@
       padding: 8px;
       margin-top: 20px;
       margin-bottom: 10px;
-      box-sizing: border-box;
       font-size: 16px;
+      box-sizing: border-box;
     }
     table { border-collapse: collapse; width: 100%; margin-top: 10px; }
     th, td { border: 1px solid #aaa; padding: 6px; text-align: left; }
     th { background-color: #f0f0f0; }
     button { padding: 8px 12px; cursor: pointer; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -45,23 +46,32 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       const container = document.getElementById("tabela-container");
+      const input = document.getElementById("searchInput");
+
       fetch("tabela-pescados.csv")
-        .then(resp => resp.text())
+        .then(resp => {
+          if (!resp.ok) throw new Error("Status " + resp.status);
+          return resp.text();
+        })
         .then(texto => {
           const linhas = texto.trim().split("\n");
-          if (!linhas.length) return;
+          if (linhas.length === 0) {
+            container.textContent = "CSV vazio.";
+            return;
+          }
 
+          // Cria tabela e armazena referência ao tbody
           const table = document.createElement("table");
           table.id = "myTable";
-
           const thead = document.createElement("thead");
-          const headerRow = document.createElement("tr");
-          linhas[0].split(",").forEach(col => {
+          const headerCells = linhas[0].split(",");
+          const trHead = document.createElement("tr");
+          headerCells.forEach(c => {
             const th = document.createElement("th");
-            th.textContent = col;
-            headerRow.appendChild(th);
+            th.textContent = c;
+            trHead.appendChild(th);
           });
-          thead.appendChild(headerRow);
+          thead.appendChild(trHead);
           table.appendChild(thead);
 
           const tbody = document.createElement("tbody");
@@ -77,23 +87,13 @@
           table.appendChild(tbody);
           container.appendChild(table);
 
-          // Função de filtro da tabela
-          const input = document.getElementById("searchInput");
+          // Evento que filtra linhas no keyup
           input.addEventListener("keyup", () => {
-            const filtro = input.value.toUpperCase();
-            const trs = tbody.getElementsByTagName("tr");
-
-            for (let i = 0; i < trs.length; i++) {
-              const tds = trs[i].getElementsByTagName("td");
-              let exibir = false;
-              for (let j = 0; j < tds.length; j++) {
-                if (tds[j].textContent.toUpperCase().includes(filtro)) {
-                  exibir = true;
-                  break;
-                }
-              }
-              trs[i].style.display = exibir ? "" : "none";
-            }
+            const filtro = input.value.toLowerCase();
+            Array.from(tbody.rows).forEach(row => {
+              const textoRow = row.textContent.toLowerCase();
+              row.classList.toggle("hidden", !textoRow.includes(filtro));
+            });
           });
         })
         .catch(err => {
@@ -104,4 +104,3 @@
   </script>
 </body>
 </html>
-
