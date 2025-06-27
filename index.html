@@ -7,23 +7,33 @@
   <style>
     body { font-family: sans-serif; margin: 20px; }
     .container { max-width: 800px; margin: auto; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    input#searchInput {
+      width: 100%;
+      padding: 8px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
     th, td { border: 1px solid #aaa; padding: 6px; text-align: left; }
     th { background-color: #f0f0f0; }
-    button { padding: 8px 12px; margin-top: 10px; cursor: pointer; }
+    button { padding: 8px 12px; cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Tem interesse em alevinos?</h1>
-    <p>Esta é uma página que lhe ajudará a encontrar informações de maneira fácil e prática, para ajudar no dia a dia dos piscicultores.</p>
+    <p>Esta é uma página que lhe ajudará a encontrar informações de maneira fácil e prática...</p>
     <button onclick="mostrarMensagem()">Clique em mim!</button>
 
-    <!-- Aqui vai a tabela gerada dinamicamente -->
+    <!-- Barra de pesquisa -->
+    <input type="text" id="searchInput" placeholder="🔍 Pesquise na tabela..." />
+
+    <!-- Local para a tabela -->
     <div id="tabela-container"></div>
 
-    <!-- Botão para baixar o CSV diretamente -->
-    <a href="/tabela.csv" target="_blank" rel="noopener">
+    <a href="tabela-pescados.csv" target="_blank" rel="noopener">
       <button class="botao-simples">Ver CSV</button>
     </a>
   </div>
@@ -34,23 +44,25 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      fetch("tabela.csv")
+      const container = document.getElementById("tabela-container");
+      fetch("tabela-pescados.csv")
         .then(resp => resp.text())
         .then(texto => {
           const linhas = texto.trim().split("\n");
-          if(linhas.length === 0) return;
+          if (!linhas.length) return;
 
-          const tabela = document.createElement("table");
-          const cabecalho = linhas[0].split(",");
+          const table = document.createElement("table");
+          table.id = "myTable";
+
           const thead = document.createElement("thead");
-          const trHead = document.createElement("tr");
-          cabecalho.forEach(col => {
+          const headerRow = document.createElement("tr");
+          linhas[0].split(",").forEach(col => {
             const th = document.createElement("th");
             th.textContent = col;
-            trHead.appendChild(th);
+            headerRow.appendChild(th);
           });
-          thead.appendChild(trHead);
-          tabela.appendChild(thead);
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
 
           const tbody = document.createElement("tbody");
           linhas.slice(1).forEach(linha => {
@@ -62,16 +74,34 @@
             });
             tbody.appendChild(tr);
           });
-          tabela.appendChild(tbody);
+          table.appendChild(tbody);
+          container.appendChild(table);
 
-          document.getElementById("tabela-container").appendChild(tabela);
+          // Função de filtro da tabela
+          const input = document.getElementById("searchInput");
+          input.addEventListener("keyup", () => {
+            const filtro = input.value.toUpperCase();
+            const trs = tbody.getElementsByTagName("tr");
+
+            for (let i = 0; i < trs.length; i++) {
+              const tds = trs[i].getElementsByTagName("td");
+              let exibir = false;
+              for (let j = 0; j < tds.length; j++) {
+                if (tds[j].textContent.toUpperCase().includes(filtro)) {
+                  exibir = true;
+                  break;
+                }
+              }
+              trs[i].style.display = exibir ? "" : "none";
+            }
+          });
         })
         .catch(err => {
           console.error("Erro ao carregar CSV:", err);
-          document.getElementById("tabela-container")
-            .textContent = "Falha ao carregar a tabela.";
+          container.textContent = "Falha ao carregar a tabela.";
         });
     });
   </script>
 </body>
 </html>
+
