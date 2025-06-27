@@ -23,7 +23,7 @@
     <div id="tabela-container"></div>
 
     <!-- Botão para baixar o CSV diretamente -->
-    <a href="tabela-pescados.csv" target="_blank" rel="noopener">
+    <a href="/tabela.csv" target="_blank" rel="noopener">
       <button class="botao-simples">Ver CSV</button>
     </a>
   </div>
@@ -34,7 +34,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      fetch("tabela-pescados.csv")
+      fetch("tabela.csv")
         .then(resp => resp.text())
         .then(texto => {
           const linhas = texto.trim().split("\n");
