@@ -41,7 +41,7 @@ button {
     padding: 12px 24px;
     font-size: 16px;
     background-color: #4CAF50;
-    color: white;
+    color: rgb(37, 7, 209);
     border: none;
     border-radius: 5px;
     transition: background-color 0.3s ease;
